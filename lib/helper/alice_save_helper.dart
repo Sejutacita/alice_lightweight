@@ -87,4 +87,21 @@ class AliceSaveHelper {
       return "Failed to generate call log";
     }
   }
+
+  static Future<String?> getErrorId(AliceHttpCall call) async {
+    try {
+      final responseBody =
+          "${AliceParser.formatBody(call.response?.body, AliceParser.getContentType(call.response?.headers ?? {}))}\n";
+
+      final Map<String, dynamic> responseMap = json.decode(responseBody);
+
+      if (responseMap.containsKey("errorId")) {
+        return responseMap["errorId"];
+      }
+
+      return null;
+    } catch (exception) {
+      return "Failed to generate call log";
+    }
+  }
 }
