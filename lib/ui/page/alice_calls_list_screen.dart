@@ -41,6 +41,10 @@ class _AliceCallsListScreenState extends State<AliceCallsListScreen> {
             .copyWith(secondary: AliceConstants.lightRed),
       ),
       child: Scaffold(
+        floatingActionButton: FloatingActionButton(
+          onPressed: _removeCalls,
+          child: Icon(Icons.delete),
+        ),
         appBar: AppBar(
           title: _searchEnabled ? _buildSearchField() : _buildTitleWidget(),
           actions: [

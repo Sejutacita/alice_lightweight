@@ -7,6 +7,7 @@ import 'package:alice_lightweight/ui/widget/alice_call_request_widget.dart';
 import 'package:alice_lightweight/ui/widget/alice_call_response_widget.dart';
 import 'package:alice_lightweight/utils/alice_constants.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
 class AliceCallDetailsScreen extends StatefulWidget {
@@ -61,14 +62,37 @@ class _AliceCallDetailsScreenState extends State<AliceCallDetailsScreen>
     return DefaultTabController(
       length: 4,
       child: Scaffold(
-        floatingActionButton: FloatingActionButton(
-          backgroundColor: AliceConstants.lightRed,
-          key: Key('share_key'),
-          onPressed: () async {
-            Share.share(await _getSharableResponseString(),
-                subject: 'Request Details');
-          },
-          child: Icon(Icons.share),
+        floatingActionButton: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            FloatingActionButton(
+              heroTag: 'copy_id',
+              backgroundColor: AliceConstants.grey,
+              onPressed: _copyErrorId,
+              child: _FloatingContent(
+                title: 'Error ID',
+              ),
+            ),
+            SizedBox(height: 12),
+            FloatingActionButton(
+              heroTag: 'copy_response',
+              backgroundColor: AliceConstants.green,
+              onPressed: _copyResponseString,
+              child: _FloatingContent(
+                title: 'Response',
+              ),
+            ),
+            SizedBox(height: 12),
+            FloatingActionButton(
+              heroTag: 'share_key',
+              backgroundColor: AliceConstants.lightRed,
+              onPressed: () async {
+                Share.share(await _getSharableResponseString(),
+                    subject: 'Request Details');
+              },
+              child: Icon(Icons.share),
+            ),
+          ],
         ),
         appBar: AppBar(
           bottom: TabBar(
@@ -92,6 +116,46 @@ class _AliceCallDetailsScreenState extends State<AliceCallDetailsScreen>
     return AliceSaveHelper.buildCallLog(widget.call);
   }
 
+  Future<void> _copyResponseString() async {
+    late final SnackBar snackBar;
+
+    try {
+      final response = await AliceSaveHelper.buildCallLog(widget.call);
+
+      await Clipboard.setData(ClipboardData(text: response));
+      snackBar = SnackBar(
+        content: Text('Successfully copied to clipboard'),
+        backgroundColor: Colors.green,
+      );
+    } catch (exception) {
+      snackBar = SnackBar(
+        content: Text('Failed to copy to clipboard'),
+        backgroundColor: Colors.red,
+      );
+    } finally {
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    }
+  }
+
+  Future<void> _copyErrorId() async {
+    final errorId = await AliceSaveHelper.getErrorId(call);
+    late final SnackBar snackBar;
+    if (errorId != null) {
+      await Clipboard.setData(ClipboardData(text: errorId));
+
+      snackBar = SnackBar(
+        content: Text('Error ID copied to clipboard'),
+        backgroundColor: Colors.green,
+      );
+    } else {
+      snackBar = SnackBar(
+        content: Text('Failed to copy error ID'),
+        backgroundColor: Colors.red,
+      );
+    }
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
   List<Widget> _getTabBars() {
     List<Widget> widgets = [];
     widgets.add(Tab(icon: Icon(Icons.info_outline), text: "Overview"));
@@ -113,5 +177,25 @@ class _AliceCallDetailsScreenState extends State<AliceCallDetailsScreen>
     widgets.add(AliceCallResponseWidget(widget.call));
     widgets.add(AliceCallErrorWidget(widget.call));
     return widgets;
+  }
+}
+
+class _FloatingContent extends StatelessWidget {
+  const _FloatingContent({this.title});
+  final title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.copy, size: 14),
+        SizedBox(height: 1),
+        Text(
+          title,
+          style: TextStyle(fontSize: 8),
+        ),
+      ],
+    );
   }
 }
