@@ -11,3 +11,4 @@ Removed the following dependencies:
 - chopper: ^3.0.2
 - chewie: ^0.9.10
 - video_player: ^0.10.8+1
+- http: ^1.1.0
