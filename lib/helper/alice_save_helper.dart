@@ -101,7 +101,18 @@ class AliceSaveHelper {
 
       return null;
     } catch (exception) {
-      return "Failed to generate error id";
+      return null;
+    }
+  }
+
+  static Future<String?> getResponseBody(AliceHttpCall call) async {
+    try {
+      final responseBody =
+          "${AliceParser.formatBody(call.response?.body, AliceParser.getContentType(call.response?.headers ?? {}))}\n";
+
+      return responseBody;
+    } catch (exception) {
+      return null;
     }
   }
 }
