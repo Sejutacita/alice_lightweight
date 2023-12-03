@@ -8,7 +8,6 @@ import 'package:alice_lightweight/ui/widget/alice_call_response_widget.dart';
 import 'package:alice_lightweight/utils/alice_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:share_plus/share_plus.dart';
 
 class AliceCallDetailsScreen extends StatefulWidget {
   final AliceHttpCall call;
@@ -23,6 +22,8 @@ class AliceCallDetailsScreen extends StatefulWidget {
 class _AliceCallDetailsScreenState extends State<AliceCallDetailsScreen>
     with SingleTickerProviderStateMixin {
   AliceHttpCall get call => widget.call;
+
+  bool isFloatingActionShown = true;
 
   @override
   void initState() {
@@ -65,32 +66,62 @@ class _AliceCallDetailsScreenState extends State<AliceCallDetailsScreen>
         floatingActionButton: Column(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            FloatingActionButton(
-              heroTag: 'copy_id',
-              backgroundColor: AliceConstants.grey,
-              onPressed: _copyErrorId,
-              child: _FloatingContent(
-                title: 'Error ID',
+            if (isFloatingActionShown) ...[
+              FloatingActionButton(
+                heroTag: 'copy_id',
+                backgroundColor: AliceConstants.grey,
+                onPressed: _copyErrorId,
+                child: _FloatingContent(
+                  title: 'Error ID',
+                ),
               ),
-            ),
-            SizedBox(height: 12),
-            FloatingActionButton(
-              heroTag: 'copy_response',
-              backgroundColor: AliceConstants.green,
-              onPressed: _copyResponseString,
-              child: _FloatingContent(
-                title: 'Response',
+              SizedBox(height: 12),
+              FloatingActionButton(
+                heroTag: 'copy_response',
+                backgroundColor: AliceConstants.green,
+                onPressed: _copyResponseOnly,
+                child: _FloatingContent(
+                  title: 'Response',
+                ),
               ),
-            ),
-            SizedBox(height: 12),
+              SizedBox(height: 12),
+              FloatingActionButton(
+                heroTag: 'copy_all',
+                backgroundColor: AliceConstants.orange,
+                onPressed: _copyResponseString,
+                child: _FloatingContent(
+                  title: 'All',
+                ),
+              ),
+              SizedBox(height: 12),
+            ],
+
+            // Info: Disable share button
+            // FloatingActionButton(
+            //   heroTag: 'share_key',
+            //   backgroundColor: AliceConstants.lightRed,
+            //   onPressed: () async {
+            //     Share.share(await _getSharableResponseString(),
+            //         subject: 'Request Details');
+            //   },
+            //   child: Icon(Icons.share),
+            // ),
+
+            // Visibility Toggle
             FloatingActionButton(
-              heroTag: 'share_key',
-              backgroundColor: AliceConstants.lightRed,
-              onPressed: () async {
-                Share.share(await _getSharableResponseString(),
-                    subject: 'Request Details');
+              heroTag: 'toggle_visibility',
+              backgroundColor: isFloatingActionShown
+                  ? AliceConstants.lightRed
+                  : AliceConstants.grey,
+              onPressed: () {
+                setState(() {
+                  isFloatingActionShown = !isFloatingActionShown;
+                });
               },
-              child: Icon(Icons.share),
+              child: Icon(
+                isFloatingActionShown ? Icons.visibility_off : Icons.visibility,
+                color: isFloatingActionShown ? Colors.white : Colors.black,
+              ),
             ),
           ],
         ),
@@ -112,9 +143,10 @@ class _AliceCallDetailsScreenState extends State<AliceCallDetailsScreen>
     return Center(child: Text("Failed to load data"));
   }
 
-  Future<String> _getSharableResponseString() async {
-    return AliceSaveHelper.buildCallLog(widget.call);
-  }
+  // Info: Disable share button
+  // Future<String> _getSharableResponseString() async {
+  //   return AliceSaveHelper.buildCallLog(widget.call);
+  // }
 
   Future<void> _copyResponseString() async {
     late final SnackBar snackBar;
@@ -150,6 +182,25 @@ class _AliceCallDetailsScreenState extends State<AliceCallDetailsScreen>
     } else {
       snackBar = SnackBar(
         content: Text('Failed to copy error ID'),
+        backgroundColor: Colors.red,
+      );
+    }
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
+  Future<void> _copyResponseOnly() async {
+    final responseBody = await AliceSaveHelper.getResponseBody(call);
+    late final SnackBar snackBar;
+    if (responseBody != null) {
+      await Clipboard.setData(ClipboardData(text: responseBody));
+
+      snackBar = SnackBar(
+        content: Text('Response copied to clipboard'),
+        backgroundColor: Colors.green,
+      );
+    } else {
+      snackBar = SnackBar(
+        content: Text('Failed to copy response'),
         backgroundColor: Colors.red,
       );
     }
