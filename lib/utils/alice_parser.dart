@@ -7,7 +7,6 @@ class AliceParser {
   static const String _jsonContentTypeBig = "Content-Type";
   static const String _stream = "Stream";
   static const String _applicationJson = "application/json";
-  static const String _parseFailedText = "Failed to parse ";
   static final JsonEncoder encoder = new JsonEncoder.withIndent('  ');
 
   static String _parseJson(dynamic json) {
@@ -59,7 +58,7 @@ class AliceParser {
 
       return bodyContent;
     } catch (exception) {
-      return _parseFailedText + body.toString();
+      return body.toString();
     }
   }
 

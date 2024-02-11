@@ -37,8 +37,10 @@ class _AliceCallsListScreenState extends State<AliceCallsListScreen> {
     return Theme(
       data: ThemeData(
         brightness: widget._aliceCore.brightness,
-        colorScheme: ColorScheme.fromSwatch()
-            .copyWith(secondary: AliceConstants.lightRed),
+        colorScheme: ColorScheme.fromSwatch().copyWith(
+          secondary: AliceConstants.lightRed,
+          background: Colors.white,
+        ),
       ),
       child: Scaffold(
         floatingActionButton: FloatingActionButton(
