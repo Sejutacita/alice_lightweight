@@ -14,8 +14,10 @@ class AliceStatsScreen extends StatelessWidget {
     return Theme(
       data: ThemeData(
         brightness: aliceCore.brightness,
-        colorScheme: ColorScheme.fromSwatch()
-            .copyWith(secondary: AliceConstants.lightRed),
+        colorScheme: ColorScheme.fromSwatch().copyWith(
+          secondary: AliceConstants.lightRed,
+          background: Colors.white,
+        ),
       ),
       child: Scaffold(
         appBar: AppBar(
