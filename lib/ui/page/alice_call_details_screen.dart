@@ -37,7 +37,7 @@ class _AliceCallDetailsScreenState extends State<AliceCallDetailsScreen>
         brightness: widget.core.brightness,
         colorScheme: ColorScheme.fromSwatch().copyWith(
           secondary: AliceConstants.lightRed,
-          background: Colors.white,
+          surface: Colors.white,
         ),
       ),
       child: StreamBuilder<List<AliceHttpCall>>(
@@ -79,6 +79,15 @@ class _AliceCallDetailsScreenState extends State<AliceCallDetailsScreen>
               ),
               SizedBox(height: 12),
               FloatingActionButton(
+                heroTag: 'copy_payload',
+                backgroundColor: AliceConstants.blue,
+                onPressed: _copyPayloadOnly,
+                child: _FloatingContent(
+                  title: 'Payload',
+                ),
+              ),
+              SizedBox(height: 12),
+              FloatingActionButton(
                 heroTag: 'copy_response',
                 backgroundColor: AliceConstants.green,
                 onPressed: _copyResponseOnly,
@@ -90,7 +99,7 @@ class _AliceCallDetailsScreenState extends State<AliceCallDetailsScreen>
               FloatingActionButton(
                 heroTag: 'copy_all',
                 backgroundColor: AliceConstants.orange,
-                onPressed: _copyResponseString,
+                onPressed: _copyAllAliceLogMap,
                 child: _FloatingContent(
                   title: 'All',
                 ),
@@ -150,11 +159,11 @@ class _AliceCallDetailsScreenState extends State<AliceCallDetailsScreen>
   //   return AliceSaveHelper.buildCallLog(widget.call);
   // }
 
-  Future<void> _copyResponseString() async {
+  Future<void> _copyAllAliceLogMap() async {
     late final SnackBar snackBar;
 
     try {
-      final response = await AliceSaveHelper.buildCallLog(widget.call);
+      final response = await AliceSaveHelper.buildLogMap(widget.call);
 
       await Clipboard.setData(ClipboardData(text: response));
       snackBar = SnackBar(
@@ -195,6 +204,25 @@ class _AliceCallDetailsScreenState extends State<AliceCallDetailsScreen>
     late final SnackBar snackBar;
     if (responseBody != null) {
       await Clipboard.setData(ClipboardData(text: responseBody));
+
+      snackBar = SnackBar(
+        content: Text('Response copied to clipboard'),
+        backgroundColor: Colors.green,
+      );
+    } else {
+      snackBar = SnackBar(
+        content: Text('Failed to copy response'),
+        backgroundColor: Colors.red,
+      );
+    }
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
+  Future<void> _copyPayloadOnly() async {
+    final payload = await AliceSaveHelper.getPayload(call);
+    late final SnackBar snackBar;
+    if (payload != null) {
+      await Clipboard.setData(ClipboardData(text: payload));
 
       snackBar = SnackBar(
         content: Text('Response copied to clipboard'),

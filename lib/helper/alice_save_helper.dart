@@ -80,6 +80,43 @@ class AliceSaveHelper {
     return stringBuffer.toString();
   }
 
+  static String _buildLogMap(AliceHttpCall call) {
+    final callMap = {
+      "id": call.id,
+      "server": call.server,
+      "method": call.method,
+      "endpoint": call.endpoint,
+      "client": call.client,
+      "duration": AliceConversionHelper.formatTime(call.duration),
+      "secure": call.secure,
+      "request": {
+        "headers": call.request?.headers,
+        "body": call.request?.body,
+        "queryParameters": call.request?.queryParameters,
+        "cookies": call.request?.cookies,
+        "contentType": call.request?.contentType,
+        "fromDataFields": call.request?.formDataFields,
+        "fromDataFiles": call.request?.formDataFiles,
+        "size": AliceConversionHelper.formatBytes(call.request?.size ?? 0),
+        "time": call.request?.time,
+      },
+      "response": {
+        "time": call.response?.time,
+        "status": call.response?.status,
+        "size": AliceConversionHelper.formatBytes(call.response?.size ?? 0),
+        "headers": call.response?.headers,
+        "body": AliceParser.formatBody(call.response?.body,
+            AliceParser.getContentType(call.response?.headers ?? {})),
+      },
+      "error": {
+        "error": call.error?.error,
+        "stackTrace": call.error?.stackTrace,
+      },
+    };
+
+    return _encoder.convert(callMap);
+  }
+
   static Future<String> buildCallLog(AliceHttpCall call) async {
     try {
       return await _buildAliceLog() + _buildCallLog(call);
@@ -90,8 +127,12 @@ class AliceSaveHelper {
 
   static Future<String?> getErrorId(AliceHttpCall call) async {
     try {
+      final errorBody = call.response?.body;
+      final responseContentType =
+          AliceParser.getContentType(call.response?.headers ?? {});
+
       final responseBody =
-          "${AliceParser.formatBody(call.response?.body, AliceParser.getContentType(call.response?.headers ?? {}))}\n";
+          "${AliceParser.formatBody(errorBody, responseContentType)}\n";
 
       final Map<String, dynamic> responseMap = json.decode(responseBody);
 
@@ -105,12 +146,49 @@ class AliceSaveHelper {
     }
   }
 
+  static Future<String> buildLogMap(AliceHttpCall call) async {
+    try {
+      return await _buildLogMap(call);
+    } catch (exception) {
+      return "Failed to generate call log map";
+    }
+  }
+
   static Future<String?> getResponseBody(AliceHttpCall call) async {
     try {
-      final responseBody =
-          "${AliceParser.formatBody(call.response?.body, AliceParser.getContentType(call.response?.headers ?? {}))}\n";
+      final response = {
+        "response": {
+          "body": call.response?.body,
+          "status": call.response?.status,
+        },
+      };
 
-      return responseBody;
+      // Convert to JSON string
+      final responseString = jsonEncode(response);
+
+      return responseString;
+    } catch (exception) {
+      return null;
+    }
+  }
+
+  static Future<String?> getPayload(AliceHttpCall call) async {
+    try {
+      final payload = {
+        "request": {
+          "body": call.request?.body,
+          "queryParameters": call.request?.queryParameters,
+          "cookies": call.request?.cookies,
+          "contentType": call.request?.contentType,
+          "fromDataFields": call.request?.formDataFields,
+          "fromDataFiles": call.request?.formDataFiles,
+        },
+      };
+
+      // Convert to JSON string
+      final payloadString = jsonEncode(payload);
+
+      return payloadString;
     } catch (exception) {
       return null;
     }
