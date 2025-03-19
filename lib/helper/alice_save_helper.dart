@@ -90,7 +90,7 @@ class AliceSaveHelper {
       "duration": AliceConversionHelper.formatTime(call.duration),
       "secure": call.secure,
       "request": {
-        "headers": call.request?.headers,
+        "headers": _encoder.convert(call.request?.headers),
         "body": call.request?.body,
         "queryParameters": call.request?.queryParameters,
         "cookies": call.request?.cookies,
@@ -98,13 +98,13 @@ class AliceSaveHelper {
         "fromDataFields": call.request?.formDataFields,
         "fromDataFiles": call.request?.formDataFiles,
         "size": AliceConversionHelper.formatBytes(call.request?.size ?? 0),
-        "time": call.request?.time,
+        "time": call.request?.time.toString(),
       },
       "response": {
-        "time": call.response?.time,
+        "time": call.response?.time.toString(),
         "status": call.response?.status,
         "size": AliceConversionHelper.formatBytes(call.response?.size ?? 0),
-        "headers": call.response?.headers,
+        "headers": _encoder.convert(call.response?.headers),
         "body": AliceParser.formatBody(call.response?.body,
             AliceParser.getContentType(call.response?.headers ?? {})),
       },
@@ -114,7 +114,7 @@ class AliceSaveHelper {
       },
     };
 
-    return _encoder.convert(callMap);
+    return jsonEncode(callMap);
   }
 
   static Future<String> buildCallLog(AliceHttpCall call) async {
@@ -130,7 +130,6 @@ class AliceSaveHelper {
       final errorBody = call.response?.body;
       final responseContentType =
           AliceParser.getContentType(call.response?.headers ?? {});
-
       final responseBody =
           "${AliceParser.formatBody(errorBody, responseContentType)}\n";
 
@@ -148,7 +147,7 @@ class AliceSaveHelper {
 
   static Future<String> buildLogMap(AliceHttpCall call) async {
     try {
-      return await _buildLogMap(call);
+      return _buildLogMap(call);
     } catch (exception) {
       return "Failed to generate call log map";
     }
@@ -156,12 +155,17 @@ class AliceSaveHelper {
 
   static Future<String?> getResponseBody(AliceHttpCall call) async {
     try {
+      final body = AliceParser.formatBody(call.response?.body,
+          AliceParser.getContentType(call.response?.headers ?? {}));
+
       final response = {
         "response": {
-          "body": call.response?.body,
+          "body": body,
           "status": call.response?.status,
         },
       };
+
+      print(response);
 
       // Convert to JSON string
       final responseString = jsonEncode(response);
@@ -174,12 +178,12 @@ class AliceSaveHelper {
 
   static Future<String?> getPayload(AliceHttpCall call) async {
     try {
+      final body = AliceParser.formatBody(call.request?.body,
+          AliceParser.getContentType(call.request?.headers ?? {}));
       final payload = {
         "request": {
-          "body": call.request?.body,
+          "body": body,
           "queryParameters": call.request?.queryParameters,
-          "cookies": call.request?.cookies,
-          "contentType": call.request?.contentType,
           "fromDataFields": call.request?.formDataFields,
           "fromDataFiles": call.request?.formDataFiles,
         },

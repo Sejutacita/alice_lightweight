@@ -165,6 +165,8 @@ class _AliceCallDetailsScreenState extends State<AliceCallDetailsScreen>
     try {
       final response = await AliceSaveHelper.buildLogMap(widget.call);
 
+      print(response);
+
       await Clipboard.setData(ClipboardData(text: response));
       snackBar = SnackBar(
         content: Text('Successfully copied to clipboard'),
