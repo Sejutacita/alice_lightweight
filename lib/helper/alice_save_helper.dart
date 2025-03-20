@@ -81,32 +81,43 @@ class AliceSaveHelper {
   }
 
   static String _buildLogMap(AliceHttpCall call) {
+    final requestHeader = AliceParser.formatBody(call.request?.headers,
+        AliceParser.getContentType(call.request?.headers ?? {}));
+    final responseHeader = AliceParser.formatBody(call.response?.headers,
+        AliceParser.getContentType(call.response?.headers ?? {}));
+    final requestBody = AliceParser.formatBody(call.request?.body,
+        AliceParser.getContentType(call.request?.headers ?? {}));
+    final responseBody = AliceParser.formatBody(call.response?.body,
+        AliceParser.getContentType(call.response?.headers ?? {}));
+
     final callMap = {
-      "id": call.id,
       "server": call.server,
       "method": call.method,
       "endpoint": call.endpoint,
-      "client": call.client,
       "duration": AliceConversionHelper.formatTime(call.duration),
-      "secure": call.secure,
       "request": {
-        "headers": _encoder.convert(call.request?.headers),
-        "body": call.request?.body,
+        if (call.request?.headers.toString().isNotEmpty ?? false) ...{
+          "headers": jsonDecode(requestHeader)
+        },
+        if (call.request?.body.toString().isNotEmpty ?? false) ...{
+          "body": jsonDecode(requestBody)
+        },
         "queryParameters": call.request?.queryParameters,
         "cookies": call.request?.cookies,
         "contentType": call.request?.contentType,
         "fromDataFields": call.request?.formDataFields,
         "fromDataFiles": call.request?.formDataFiles,
         "size": AliceConversionHelper.formatBytes(call.request?.size ?? 0),
-        "time": call.request?.time.toString(),
       },
       "response": {
-        "time": call.response?.time.toString(),
         "status": call.response?.status,
         "size": AliceConversionHelper.formatBytes(call.response?.size ?? 0),
-        "headers": _encoder.convert(call.response?.headers),
-        "body": AliceParser.formatBody(call.response?.body,
-            AliceParser.getContentType(call.response?.headers ?? {})),
+        if (call.response?.headers.toString().isNotEmpty ?? false) ...{
+          "headers": jsonDecode(responseHeader),
+        },
+        if (call.response?.body.toString().isNotEmpty ?? false) ...{
+          "body": jsonDecode(responseBody)
+        },
       },
       "error": {
         "error": call.error?.error,
@@ -131,7 +142,7 @@ class AliceSaveHelper {
       final responseContentType =
           AliceParser.getContentType(call.response?.headers ?? {});
       final responseBody =
-          "${AliceParser.formatBody(errorBody, responseContentType)}\n";
+          AliceParser.formatBody(errorBody, responseContentType);
 
       final Map<String, dynamic> responseMap = json.decode(responseBody);
 
@@ -158,16 +169,15 @@ class AliceSaveHelper {
       final body = AliceParser.formatBody(call.response?.body,
           AliceParser.getContentType(call.response?.headers ?? {}));
 
+      final decodedBody = jsonDecode(body);
+
       final response = {
         "response": {
-          "body": body,
+          "body": decodedBody,
           "status": call.response?.status,
         },
       };
 
-      print(response);
-
-      // Convert to JSON string
       final responseString = jsonEncode(response);
 
       return responseString;
@@ -180,6 +190,7 @@ class AliceSaveHelper {
     try {
       final body = AliceParser.formatBody(call.request?.body,
           AliceParser.getContentType(call.request?.headers ?? {}));
+
       final payload = {
         "request": {
           "body": body,
