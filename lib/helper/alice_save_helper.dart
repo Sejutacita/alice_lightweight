@@ -83,8 +83,6 @@ class AliceSaveHelper {
   static String _buildLogMap(AliceHttpCall call) {
     final requestHeader = AliceParser.formatBody(call.request?.headers,
         AliceParser.getContentType(call.request?.headers ?? {}));
-    final responseHeader = AliceParser.formatBody(call.response?.headers,
-        AliceParser.getContentType(call.response?.headers ?? {}));
     final requestBody = AliceParser.formatBody(call.request?.body,
         AliceParser.getContentType(call.request?.headers ?? {}));
     final responseBody = AliceParser.formatBody(call.response?.body,
@@ -112,9 +110,6 @@ class AliceSaveHelper {
       "response": {
         "status": call.response?.status,
         "size": AliceConversionHelper.formatBytes(call.response?.size ?? 0),
-        if (call.response?.headers.toString().isNotEmpty ?? false) ...{
-          "headers": jsonDecode(responseHeader),
-        },
         if (call.response?.body.toString().isNotEmpty ?? false) ...{
           "body": jsonDecode(responseBody)
         },
